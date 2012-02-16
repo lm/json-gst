@@ -117,9 +117,7 @@ TestCase subclass: JsonTest [
 
 	testStringWithUnicode [
 	self json: '"\u263A"'
-		equals: (Character codePoint: 9786) asUnicodeString asString.
-	self render: (Character codePoint: 9786) asUnicodeString asString
-		equals: '"\u263A"'
+		equals: (Character codePoint: 16r263A) asUnicodeString asString.
 	]
 
 	testWriteAssociation [
