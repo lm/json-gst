@@ -1,9 +1,9 @@
 Object extend [
 
-    asJsonString [
+	asJsonString [
 	<category: '*JSON'>
 	^String streamContents: [:str | self jsonWriteOn: str]
-    ]
+	]
 
 ]
 

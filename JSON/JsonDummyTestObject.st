@@ -1,72 +1,72 @@
 Object subclass: JsonDummyTestObject [
-    | a b c |
-    
-    <category: 'JSON'>
-    <comment: nil>
+	| a b c |
 
-    JsonDummyTestObject class >> constructFromJson: j [
+	<category: 'JSON'>
+	<comment: nil>
+
+	JsonDummyTestObject class >> constructFromJson: j [
 	^(self new)
-	    a: (j at: 'a');
-	    b: (j at: 'b');
-	    c: (j at: 'c');
-	    yourself
-    ]
+		a: (j at: 'a');
+		b: (j at: 'b');
+		c: (j at: 'c');
+		yourself
+	]
 
-    = other [
-	^other class == self class 
-	    and: [a = other a and: [b = other b and: [c = other c]]]
-    ]
+	= other [
+	^other class == self class
+		and: [a = other a and: [b = other b and: [c = other c]]]
+	]
 
-    jsonWriteOn: s [
-	Json 
-	    renderInstanceVariables: 
+	jsonWriteOn: s [
+	Json
+		renderInstanceVariables:
 		{#a.
 		#b.
 		#c}
-	    of: self
-	    on: s
-    ]
+		of: self
+		on: s
+	]
 
-    a [
+	a [
 	"Answer the value of a"
 
 	<category: 'accessing'>
 	^a
-    ]
+	]
 
-    a: anObject [
+	a: anObject [
 	"Set the value of a"
 
 	<category: 'accessing'>
 	a := anObject
-    ]
+	]
 
-    b [
+	b [
 	"Answer the value of b"
 
 	<category: 'accessing'>
 	^b
-    ]
+	]
 
-    b: anObject [
+	b: anObject [
 	"Set the value of b"
 
 	<category: 'accessing'>
 	b := anObject
-    ]
+	]
 
-    c [
+	c [
 	"Answer the value of c"
 
 	<category: 'accessing'>
 	^c
-    ]
+	]
 
-    c: anObject [
+	c: anObject [
 	"Set the value of c"
 
 	<category: 'accessing'>
 	c := anObject
-    ]
+	]
 ]
 

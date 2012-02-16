@@ -1,148 +1,148 @@
 TestCase subclass: JsonTests [
-    
-    <comment: 'I provide a number of test cases for class Json.'>
-    <category: 'JSON'>
 
-    json: aString equals: aValue [
+	<comment: 'I provide a number of test cases for class Json.'>
+	<category: 'JSON'>
+
+	json: aString equals: aValue [
 	| readValue |
 	readValue := self readFrom: aString.
 	self assert: readValue = aValue
-	    description: readValue printString , ' = ' , aValue printString
-    ]
+		description: readValue printString , ' = ' , aValue printString
+	]
 
-    readFrom: aString [
-	^(Json newWithConstructors: {JsonDummyTestObject}) 
-	    readFrom: aString readStream
-    ]
+	readFrom: aString [
+	^(Json newWithConstructors: {JsonDummyTestObject})
+		readFrom: aString readStream
+	]
 
-    render: anObject equals: aString [
+	render: anObject equals: aString [
 	self assert: (Json render: anObject) = aString
-	    description: 'Json render ' , anObject printString , ' = ' , aString
-    ]
+		description: 'Json render ' , anObject printString , ' = ' , aString
+	]
 
-    simpleDummyObject [
+	simpleDummyObject [
 	^(JsonDummyTestObject new)
-	    a: 1;
-	    b: 2;
-	    c: 3;
-	    yourself
-    ]
+		a: 1;
+		b: 2;
+		c: 3;
+		yourself
+	]
 
-    testArray [
+	testArray [
 	self json: '[]' equals: #().
 	self json: '[[]]' equals: #(#()).
 	self json: '[[], []]' equals: #(#() #()).
 	self json: '["hi", "there"]' equals: #('hi' 'there').
 	self json: '[["a", "b", null]]' equals: #(#('a' 'b' nil))
-    ]
+	]
 
-    testAtomFalse [
+	testAtomFalse [
 	self json: 'false' equals: false.
 	self json: '  false' equals: false.
 	self json: 'false  ' equals: false.
 	self json: '  false  ' equals: false
-    ]
+	]
 
-    testAtomNull [
+	testAtomNull [
 	self json: 'null' equals: nil.
 	self json: '  null' equals: nil.
 	self json: 'null  ' equals: nil.
 	self json: '  null  ' equals: nil
-    ]
+	]
 
-    testAtomNumber [
+	testAtomNumber [
 	self json: '1' equals: 1.
 	self json: '0123' equals: 123.
 	self json: '1.23e2' equals: 123.
 	self json: '-1' equals: -1.
 	self json: '-0' equals: 0.
 	self json: '[-1.2]' equals: {1.2 negated}
-    ]
+	]
 
-    testAtomString [
+	testAtomString [
 	self json: '"hi"' equals: 'hi'.
 	self json: '"\""' equals: '"'.
 	self json: '"\\"' equals: '\'.
 	self json: '""' equals: ''.
 	self json: '"a\u0004b"'
-	    equals: (String from: 
+		equals: (String from:
 			{$a.
 			Character value: 4.
 			$b}).
-	self json: '"a\nb"' equals: (String from: 
+	self json: '"a\nb"' equals: (String from:
 			{$a.
 			Character lf.
 			$b})
-    ]
+	]
 
-    testAtomTrue [
+	testAtomTrue [
 	self json: 'true' equals: true.
 	self json: '  true' equals: true.
 	self json: 'true  ' equals: true.
 	self json: '  true  ' equals: true
-    ]
+	]
 
-    testCtor [
+	testCtor [
 	self json: '@JsonDummyTestObject {"a": 1, "b": 2, "c": 3}'
-	    equals: self simpleDummyObject.
+		equals: self simpleDummyObject.
 	self json: (Json render: self simpleDummyObject)
-	    equals: self simpleDummyObject
-    ]
+		equals: self simpleDummyObject
+	]
 
-    testDictionary [
+	testDictionary [
 	self json: '{}' equals: Dictionary new.
 	self json: '{"a": "a"}'
-	    equals: ((Dictionary new)
-		    at: 'a' put: 'a';
-		    yourself).
+		equals: ((Dictionary new)
+			at: 'a' put: 'a';
+			yourself).
 	self json: '{"a": [[]]}'
-	    equals: ((Dictionary new)
-		    at: 'a' put: #(#());
-		    yourself).
+		equals: ((Dictionary new)
+			at: 'a' put: #(#());
+			yourself).
 	self json: '{"a":"b", "b":"a"}'
-	    equals: ((Dictionary new)
-		    add: 'a' -> 'b';
-		    add: 'b' -> 'a';
-		    yourself)
-    ]
+		equals: ((Dictionary new)
+			add: 'a' -> 'b';
+			add: 'b' -> 'a';
+			yourself)
+	]
 
-    testMissingCtor [
+	testMissingCtor [
 	self should: [self readFrom: '@Missing[]'] raise: JsonSyntaxError
-    ]
+	]
 
-    testMissingCtorNoMap [
+	testMissingCtorNoMap [
 	self should: [Json new readFrom: '@Missing[]' readStream]
-	    raise: JsonSyntaxError
-    ]
+		raise: JsonSyntaxError
+	]
 
-    testStringWithUnicode [
+	testStringWithUnicode [
 	self json: '"\u263A"'
-	    equals: (Character codePoint: 9786) asUnicodeString asString.
+		equals: (Character codePoint: 9786) asUnicodeString asString.
 	self render: (Character codePoint: 9786) asUnicodeString asString
-	    equals: '"\u263A"'
-    ]
+		equals: '"\u263A"'
+	]
 
-    testWriteAssociation [
+	testWriteAssociation [
 	self render: 'key' -> 'value' equals: '"key": "value"'.
 	self render: 'key' -> 2 equals: '"key": 2'.
 	"keys should be strings"
 	self render: 42 -> 2 equals: '"42": 2'.
-    ]
+	]
 
-    testWriteString [
+	testWriteString [
 	self render: '"' equals: '"\""'.
 	self render: '\' equals: '"\\"'.
 	self render: 'hi' equals: '"hi"'.
-	self render: (String from: 
+	self render: (String from:
 			{$a.
 			Character lf.
 			$b})
-	    equals: '"a\nb"'.
-	self render: (String from: 
+		equals: '"a\nb"'.
+	self render: (String from:
 			{$a.
 			Character value: 4.
 			$b})
-	    equals: '"a\u0004b"'
-    ]
+		equals: '"a\u0004b"'
+	]
 ]
 

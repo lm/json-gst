@@ -1,15 +1,15 @@
 String extend [
 
-    jsonWriteOn: aStream [
+	jsonWriteOn: aStream [
 	<category: '*JSON-writing'>
 	| replacement |
 	aStream nextPut: $".
-	self do: 
-		[:ch | 
+	self do:
+		[:ch |
 		replacement := (Json escapeForCharacter: ch) asString.
 		aStream nextPutAll: replacement].
 	aStream nextPut: $"
-    ]
+	]
 
 ]
 

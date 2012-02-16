@@ -1,9 +1,9 @@
 WriteStream extend [
 
-    jsonPrint: anObject [
+	jsonPrint: anObject [
 	<category: '*json-printing'>
 	anObject jsonWriteOn: self
-    ]
+	]
 
 ]
 
