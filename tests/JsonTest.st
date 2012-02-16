@@ -1,4 +1,4 @@
-TestCase subclass: JsonTests [
+TestCase subclass: JsonTest [
 
 	<comment: 'I provide a number of test cases for class Json.'>
 	<category: 'JSON'>

@@ -1,38 +1,22 @@
 <package>
-<!-- THIS FILE IS GENERATED! EDITS _WILL_ BE LOST ON UPDATE! -->
-<name>JSON</name>
-<prereq>Iconv</prereq>
-<test>
-<filein>JSON/JsonTests.st</filein>
-<sunit>JsonTests</sunit>
-</test>
-<filein>Extensions/Association.st</filein>
-<filein>Extensions/Collection.st</filein>
-<filein>Extensions/Dictionary.st</filein>
-<filein>Extensions/False.st</filein>
-<filein>Extensions/Integer.st</filein>
-<filein>JSON/Json.st</filein>
-<filein>JSON/JsonDummyTestObject.st</filein>
-<filein>JSON/JsonSyntaxError.st</filein>
-<filein>Extensions/Number.st</filein>
-<filein>Extensions/Object.st</filein>
-<filein>Extensions/String.st</filein>
-<filein>Extensions/True.st</filein>
-<filein>Extensions/UndefinedObject.st</filein>
-<filein>Extensions/WriteStream.st</filein>
-<file>Extensions/Association.st</file>
-<file>Extensions/Collection.st</file>
-<file>Extensions/Dictionary.st</file>
-<file>Extensions/False.st</file>
-<file>Extensions/Integer.st</file>
-<file>JSON/Json.st</file>
-<file>JSON/JsonDummyTestObject.st</file>
-<file>JSON/JsonSyntaxError.st</file>
-<file>JSON/JsonTests.st</file>
-<file>Extensions/Number.st</file>
-<file>Extensions/Object.st</file>
-<file>Extensions/String.st</file>
-<file>Extensions/True.st</file>
-<file>Extensions/UndefinedObject.st</file>
-<file>Extensions/WriteStream.st</file>
+	<name>Json</name>
+	<prereq>Iconv</prereq>
+	<test>
+		<filein>tests/JsonTest.st</filein>
+		<filein>tests/JsonDummyTestObject.st</filein>
+		<sunit>JsonTest</sunit>
+	</test>
+	<filein>Json/extensions/Association.st</filein>
+	<filein>Json/extensions/Collection.st</filein>
+	<filein>Json/extensions/Dictionary.st</filein>
+	<filein>Json/extensions/False.st</filein>
+	<filein>Json/extensions/Integer.st</filein>
+	<filein>Json/Json.st</filein>
+	<filein>Json/JsonSyntaxError.st</filein>
+	<filein>Json/extensions/Number.st</filein>
+	<filein>Json/extensions/Object.st</filein>
+	<filein>Json/extensions/String.st</filein>
+	<filein>Json/extensions/True.st</filein>
+	<filein>Json/extensions/UndefinedObject.st</filein>
+	<filein>Json/extensions/WriteStream.st</filein>
 </package>
