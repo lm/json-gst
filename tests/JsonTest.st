@@ -11,21 +11,12 @@ TestCase subclass: JsonTest [
 	]
 
 	readFrom: aString [
-	^(Json newWithConstructors: {JsonDummyTestObject})
-		readFrom: aString readStream
+	^Json readFrom: aString readStream
 	]
 
 	render: anObject equals: aString [
 	self assert: (Json render: anObject) = aString
 		description: 'Json render ' , anObject printString , ' = ' , aString
-	]
-
-	simpleDummyObject [
-	^(JsonDummyTestObject new)
-		a: 1;
-		b: 2;
-		c: 3;
-		yourself
 	]
 
 	testArray [
@@ -82,13 +73,6 @@ TestCase subclass: JsonTest [
 	self json: '  true  ' equals: true
 	]
 
-	testCtor [
-	self json: '@JsonDummyTestObject {"a": 1, "b": 2, "c": 3}'
-		equals: self simpleDummyObject.
-	self json: (Json render: self simpleDummyObject)
-		equals: self simpleDummyObject
-	]
-
 	testDictionary [
 	self json: '{}' equals: Dictionary new.
 	self json: '{"a": "a"}'
@@ -104,15 +88,6 @@ TestCase subclass: JsonTest [
 			add: 'a' -> 'b';
 			add: 'b' -> 'a';
 			yourself)
-	]
-
-	testMissingCtor [
-	self should: [self readFrom: '@Missing[]'] raise: JsonSyntaxError
-	]
-
-	testMissingCtorNoMap [
-	self should: [Json new readFrom: '@Missing[]' readStream]
-		raise: JsonSyntaxError
 	]
 
 	testStringWithUnicode [

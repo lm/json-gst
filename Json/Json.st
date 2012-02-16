@@ -41,19 +41,6 @@ Object subclass: Json [
 	^'application/x-json'
 	]
 
-	Json class >> newWithConstructors: aCollection [
-	| m |
-	m := Dictionary new.
-	aCollection do:
-		[:each |
-		(each isKindOf: Association)
-			ifTrue: [m add: each]
-			ifFalse: [m at: each name asString put: each]].
-	^(self new)
-		ctorMap: m;
-		yourself
-	]
-
 	Json class >> numbersMayContain: aChar [
 	^aChar isDigit or: [#($- $+ $. $e $E) includes: aChar]
 	]
@@ -67,22 +54,6 @@ Object subclass: Json [
 	s := WriteStream on: String new.
 	anObject jsonWriteOn: s.
 	^s contents
-	]
-
-	Json class >> render: anObject withConstructor: aConstructorName on: aStream [
-	aStream nextPutAll: '@' , aConstructorName.
-	anObject jsonWriteOn: aStream
-	]
-
-	Json class >> renderInstanceVariables: aCollection of: anObject on: aStream [
-	| map |
-	map := Dictionary new.
-	aCollection
-		do: [:ivarName | map at: ivarName put: (anObject instVarNamed: ivarName)].
-	self
-		render: map
-		withConstructor: anObject class name asString
-		on: aStream
 	]
 
 	consume: aString returning: anObject [
@@ -118,27 +89,6 @@ Object subclass: Json [
 	self skipWhitespace.
 	(stream peekFor: $]) ifTrue: [^a asArray].
 	(stream peekFor: $,) ifFalse: [JsonSyntaxError signal: 'Missing comma']]
-		repeat
-	]
-
-	readConstructor [
-	<category: 'private'>
-	| s c v ctor |
-	s := WriteStream on: ''.
-
-	[c := stream peek.
-	c
-		ifNil: [JsonSyntaxError signal: 'Premature EOF reading constructor name'].
-	(c == $. or: [c isLetter])
-		ifTrue:
-		[s nextPut: c.
-		stream next]
-		ifFalse:
-		[v := self readAny.
-		s := s contents.
-		ctor := ctorMap ifNotNil: [:foo | ctor := ctorMap at: s ifAbsent: [nil]].
-		ctor ifNil: [JsonSyntaxError signal: 'Unknown ctor ' , s].
-		^ctor constructFromJson: v]]
 		repeat
 	]
 
@@ -247,16 +197,6 @@ Object subclass: Json [
 	^Character codePoint: (Integer readFrom: string readStream radix: 16)
 	]
 
-	ctorMap [
-	<category: 'accessing'>
-	^ctorMap
-	]
-
-	ctorMap: m [
-	<category: 'accessing'>
-	ctorMap := m
-	]
-
 	stream [
 	"Answer the value of stream"
 
@@ -294,10 +234,7 @@ Object subclass: Json [
 	c == $t ifTrue: [^self consume: 'true' returning: true].
 	c == $f ifTrue: [^self consume: 'false' returning: false].
 	c == $n ifTrue: [^self consume: 'null' returning: nil].
-	c == $@
-		ifTrue:
-		[stream next.
-		^self readConstructor].
+
 	(Json numbersMayContain: c) ifTrue: [^self readNumber].
 	JsonSyntaxError signal: 'Unknown Json input'
 	]

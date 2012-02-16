@@ -3,7 +3,6 @@
 	<prereq>Iconv</prereq>
 	<test>
 		<filein>tests/JsonTest.st</filein>
-		<filein>tests/JsonDummyTestObject.st</filein>
 		<sunit>JsonTest</sunit>
 	</test>
 	<filein>Json/extensions/Association.st</filein>
