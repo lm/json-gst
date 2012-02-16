@@ -1,8 +1,9 @@
 Integer extend [
 
-	jsonWriteOn: aWriteStream [
-	<category: '*JSON-writing'>
-	^self printOn: aWriteStream base: 10
+	storeAsJsonOn: aWriteStream [
+		<category: 'json-storing'>
+
+		^self printOn: aWriteStream base: 10
 	]
 
 ]

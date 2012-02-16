@@ -1,121 +1,148 @@
 TestCase subclass: JsonTest [
 
 	<comment: 'I provide a number of test cases for class Json.'>
-	<category: 'JSON'>
+	<category: 'json'>
 
-	json: aString equals: aValue [
-	| readValue |
-	readValue := self readFrom: aString.
-	self assert: readValue = aValue
-		description: readValue printString , ' = ' , aValue printString
+	testParseNull [
+		self
+			parseJson: 'null' equals: nil;
+			parseJson: '  null' equals: nil;
+			parseJson: 'null  ' equals: nil;
+			parseJson: '  null  ' equals: nil.
 	]
 
-	readFrom: aString [
-	^Json readFrom: aString readStream
+	testParseTrue [
+		self
+			parseJson: 'true' equals: true;
+			parseJson: '  true' equals: true;
+			parseJson: 'true  ' equals: true;
+			parseJson: '  true  ' equals: true.
 	]
 
-	render: anObject equals: aString [
-	self assert: (Json render: anObject) = aString
-		description: 'Json render ' , anObject printString , ' = ' , aString
+	testParseFalse [
+		self
+			parseJson: 'false' equals: false;
+			parseJson: '  false' equals: false;
+			parseJson: 'false  ' equals: false;
+			parseJson: '  false  ' equals: false.
 	]
 
-	testArray [
-	self json: '[]' equals: #().
-	self json: '[[]]' equals: #(#()).
-	self json: '[[], []]' equals: #(#() #()).
-	self json: '["hi", "there"]' equals: #('hi' 'there').
-	self json: '[["a", "b", null]]' equals: #(#('a' 'b' nil))
+	testParseNumber [
+		self
+			parseJson: '1' equals: 1;
+			parseJson: '1.23e2' equals: 123;
+			parseJson: '-1.23e2' equals: -123;
+			parseJson: '1e-2' equals: 1/100;
+			parseJson: '-1e-2' equals: -1/100;
+			parseJson: '-1' equals: -1;
+			parseJson: '-0' equals: 0;
+			parseJson: '-1.2' equals: -1.2.
 	]
 
-	testAtomFalse [
-	self json: 'false' equals: false.
-	self json: '  false' equals: false.
-	self json: 'false  ' equals: false.
-	self json: '  false  ' equals: false
+	testParseString [
+		self
+			parseJson: '"hi"' equals: 'hi';
+			parseJson: '"\""' equals: '"';
+			parseJson: '"\\"' equals: '\';
+			parseJson: '""' equals: '';
+			parseJson: '"a\u0004b"' equals: (String from: {$a. $<4>. $b});
+			parseJson: '"a\nb"' equals: (String from: {$a. Character lf. $b});
+			parseJson: '"\u263A"' equals: (Character codePoint: 16r263A) asString
 	]
 
-	testAtomNull [
-	self json: 'null' equals: nil.
-	self json: '  null' equals: nil.
-	self json: 'null  ' equals: nil.
-	self json: '  null  ' equals: nil
+	testParseArray [
+		self
+			parseJson: '[]' equals: #();
+			parseJson: '[[]]' equals: #(#());
+			parseJson: '[[], []]' equals: #(#() #());
+			parseJson: '["hi", "there"]' equals: #('hi' 'there');
+			parseJson: '[["a", "b", null]]' equals: #(#('a' 'b' nil)).
 	]
 
-	testAtomNumber [
-	self json: '1' equals: 1.
-	self json: '0123' equals: 123.
-	self json: '1.23e2' equals: 123.
-	self json: '-1' equals: -1.
-	self json: '-0' equals: 0.
-	self json: '[-1.2]' equals: {1.2 negated}
+	testParseDictionary [
+		self
+			parseJson: '{}' equals: Dictionary new;
+			parseJson: '{"a": "a"}' equals: (Dictionary with: 'a' -> 'a');
+			parseJson: '{"a": [[]]}' equals: (Dictionary with: 'a' -> #(#()));
+			parseJson: '{"a":"b", "b":"a"}' equals: (Dictionary with: 'a' -> 'b' with: 'b' -> 'a').
 	]
 
-	testAtomString [
-	self json: '"hi"' equals: 'hi'.
-	self json: '"\""' equals: '"'.
-	self json: '"\\"' equals: '\'.
-	self json: '""' equals: ''.
-	self json: '"a\u0004b"'
-		equals: (String from:
-			{$a.
-			Character value: 4.
-			$b}).
-	self json: '"a\nb"' equals: (String from:
-			{$a.
-			Character lf.
-			$b})
+	testStringifyBoolean [
+		self
+			stringify: true equals: 'true';
+			stringify: false equals: 'false'.
 	]
 
-	testAtomTrue [
-	self json: 'true' equals: true.
-	self json: '  true' equals: true.
-	self json: 'true  ' equals: true.
-	self json: '  true  ' equals: true
+	testStringifyNil [
+		self stringify: nil equals: 'null'.
 	]
 
-	testDictionary [
-	self json: '{}' equals: Dictionary new.
-	self json: '{"a": "a"}'
-		equals: ((Dictionary new)
-			at: 'a' put: 'a';
-			yourself).
-	self json: '{"a": [[]]}'
-		equals: ((Dictionary new)
-			at: 'a' put: #(#());
-			yourself).
-	self json: '{"a":"b", "b":"a"}'
-		equals: ((Dictionary new)
-			add: 'a' -> 'b';
-			add: 'b' -> 'a';
-			yourself)
+	testStringifyNumber [
+		self
+			stringify: 1 equals: '1';
+			stringify: 1.1 equals: '1.1';
+			stringify: 1e10 equals: '1.0e10';
+			stringify: 1e-10 equals: '1.0e-10';
+			stringify: FloatD infinity equals: 'null';
+			stringify: FloatD infinity negated equals: 'null';
+			stringify: 1/2 equals: '0.5';
+			stringify: (1 asScaledDecimal: 1) equals: '1.0'.
 	]
 
-	testStringWithUnicode [
-	self json: '"\u263A"'
-		equals: (Character codePoint: 16r263A) asUnicodeString asString.
+	testStringifyString [
+		| string expected |
+
+		string := ((0 to: 128) collect: [ :code | Character codePoint: code]) asUnicodeString.
+		expected := '"\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\b\t\n\u000B\f\r\u000E',
+			'\u000F\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001A\u001B',
+			'\u001C\u001D\u001E\u001F !\"#$%&''()*+,-.\/0123456789:;<=>?@ABCDEFGHIJKLMNOPQRS',
+			'TUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u007F', (Character codePoint: 128) asString, '"'.
+
+		self stringify: string equals: expected.
 	]
 
-	testWriteAssociation [
-	self render: 'key' -> 'value' equals: '"key": "value"'.
-	self render: 'key' -> 2 equals: '"key": 2'.
-	"keys should be strings"
-	self render: 42 -> 2 equals: '"42": 2'.
+	testStringifyArray [
+		self stringify: #() equals: '[]'.
+		self
+			stringify: {true. false. nil. 'foo'. 2. #(). #(1). Dictionary new}
+			equals: '[true, false, null, "foo", 2, [], [1], {}]'.
 	]
 
-	testWriteString [
-	self render: '"' equals: '"\""'.
-	self render: '\' equals: '"\\"'.
-	self render: 'hi' equals: '"hi"'.
-	self render: (String from:
-			{$a.
-			Character lf.
-			$b})
-		equals: '"a\nb"'.
-	self render: (String from:
-			{$a.
-			Character value: 4.
-			$b})
-		equals: '"a\u0004b"'
+	testStringifyDictionary [
+		self
+			stringify: (Dictionary with: 'key' -> 'value') equals: '{"key": "value"}';
+			stringify: (Dictionary with: 42 -> 2) equals: '{"42": 2}'.
+	]
+
+	testErrorMessages [
+		self
+			parseJson: '[' error: 'Expected string, object, array, true, false, null or digit but end of input found';
+			parseJson: '{' error: 'Expected string but end of input found';
+			parseJson: '{""' error: 'Expected : but end of input found';
+			parseJson: 't' error: 'Expected true but t found';
+			parseJson: 'f' error: 'Expected false but f found';
+			parseJson: 'n' error: 'Expected null but n found';
+			parseJson: '"s' error: 'Expected character but end of input found';
+			parseJson: '0 1' error: 'Expected end of input but 1 found'.
+	]
+
+	parseJson: aString error: aMessageString [
+		[Json parse: aString.
+		self assert: false]
+			on: JsonSyntaxError do: [ :e | self assert: aMessageString = e messageText].
+	]
+
+	parseJson: aString equals: aValue [
+		| value |
+
+		value := Json parse: aString.
+		self assert: value = aValue description: value printString, ' = ', aValue printString
+	]
+
+	stringify: anObject equals: aString [
+		self
+			assert: (Json stringify: anObject) = aString
+			description: (Json stringify: anObject), ' = ', aString
 	]
 ]
 

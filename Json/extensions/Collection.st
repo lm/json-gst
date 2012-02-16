@@ -1,13 +1,13 @@
 Collection extend [
 
-	jsonWriteOn: aStream [
-	"By default, use array braces"
+	storeAsJsonOn: aStream [
+		"By default, use array braces"
 
-	<category: '*json'>
-	aStream nextPut: $[.
-	self do: [:each | each jsonWriteOn: aStream]
-		separatedBy: [aStream nextPut: $,].
-	aStream nextPut: $]
+		<category: 'json-storing'>
+
+		aStream nextPut: $[.
+		self do: [:each | each storeAsJsonOn: aStream] separatedBy: [aStream nextPutAll: ', '].
+		aStream nextPut: $]
 	]
 
 ]

@@ -14,7 +14,7 @@
 	<filein>Json/JsonSyntaxError.st</filein>
 	<filein>Json/extensions/Number.st</filein>
 	<filein>Json/extensions/Object.st</filein>
-	<filein>Json/extensions/String.st</filein>
+	<filein>Json/extensions/CharacterArray.st</filein>
 	<filein>Json/extensions/True.st</filein>
 	<filein>Json/extensions/UndefinedObject.st</filein>
 	<filein>Json/extensions/WriteStream.st</filein>

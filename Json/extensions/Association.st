@@ -1,12 +1,13 @@
 Association extend [
 
-	jsonWriteOn: aStream [
-	<category: '*JSON-writing'>
-	self key asString jsonWriteOn: aStream.
-	aStream
-		nextPut: $:;
-		space.
-	self value jsonWriteOn: aStream
+	storeAsJsonOn: aStream [
+		<category: 'json-storing'>
+
+		self key asString storeAsJsonOn: aStream.
+		aStream
+			nextPut: $:;
+			space.
+		self value storeAsJsonOn: aStream
 	]
 
 ]

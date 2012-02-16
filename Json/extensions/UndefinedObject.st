@@ -1,8 +1,9 @@
 UndefinedObject extend [
 
-	jsonWriteOn: aWriteStream [
-	<category: '*JSON-writing'>
-	aWriteStream nextPutAll: 'null'
+	storeAsJsonOn: aWriteStream [
+		<category: 'json-storing'>
+
+		aWriteStream nextPutAll: 'null'
 	]
 
 ]

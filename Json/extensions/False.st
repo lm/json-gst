@@ -1,8 +1,9 @@
 False extend [
 
-	jsonWriteOn: aStream [
-	<category: '*JSON-writing'>
-	aStream nextPutAll: 'false'
+	storeAsJsonOn: aStream [
+		<category: 'json-storing'>
+
+		aStream nextPutAll: 'false'
 	]
 
 ]

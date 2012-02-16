@@ -1,254 +1,249 @@
 Object subclass: Json [
-	| stream ctorMap |
+	| stream |
 
-	<category: 'JSON'>
-	<comment: 'This class reads and writes JSON format data - strings, numbers, boolean, nil, arrays and dictionaries. See http://www.crockford.com/JSON/index.html. It has been extended with syntax for invoking a prearranged list of constructors on read objects.'>
+	<category: 'json'>
+	<comment: 'This class reads and writes JSON format data - strings, numbers, boolean, nil, arrays and dictionaries. See http://json.org.'>
 
-	Json class [
-	| escapeArray |
+	LastEncodedCharacter := Character space.
 
+	Json class >> readFrom: aStream [
+		| parser result |
+
+		parser := self new initializeStream: aStream.
+		result := parser next.
+
+		parser nextSeparator.
+		aStream atEnd ifFalse: [parser errorExpected: 'end of input' was: aStream peek].
+
+		^result
 	]
 
-	Json class >> escapeForCharacter: c [
-	| index |
-	^(index := c asciiValue + 1) <= escapeArray size
-		ifTrue: [escapeArray at: index]
-		ifFalse: [c]
+	Json class >> parse: aString [
+		^self readFrom: aString readStream
 	]
 
-	Json class >> initialize [
-	"Json initialize."
+	Json class >> stringify: anObject [
+		| stream |
 
-	| tmpStr |
-	escapeArray := (1 to: 128) collect: [:i | Character value: i - 1].
-	(0 to: 31) , #(127) do:
-		[:each |
-		tmpStr := String streamContents: [:str | each printOn: str base: 16].
-		escapeArray at: each + 1
-			put: '\u' , (String new: (4 - tmpStr size max: 0) withAll: $0) , tmpStr].
-
-	{$" -> '\"'.
-	$\ -> '\\'.
-	Character backspace -> '\b'.
-	Character lf -> '\n'.
-	Character newPage -> '\f'.
-	Character cr -> '\r'.
-	Character tab -> '\t'}
-		do: [:each | escapeArray at: each key asciiValue + 1 put: each value]
+		stream := WriteStream on: String new.
+		anObject storeAsJsonOn: stream.
+		^stream contents
 	]
 
 	Json class >> mimeType [
-	^'application/x-json'
+		^'application/x-json'
 	]
 
-	Json class >> numbersMayContain: aChar [
-	^aChar isDigit or: [#($- $+ $. $e $E) includes: aChar]
+	Json class >> putEscapedCharacter: aCharacter on: aStream [
+		(aCharacter < LastEncodedCharacter or: [aCharacter codePoint = 127])
+			ifTrue: [
+				Character backspace = aCharacter ifTrue: [^aStream nextPutAll: '\b'].
+				Character tab = aCharacter ifTrue: [^aStream nextPutAll: '\t'].
+				Character lf = aCharacter ifTrue: [^aStream nextPutAll: '\n'].
+				Character ff = aCharacter ifTrue: [^aStream nextPutAll: '\f'].
+				Character cr = aCharacter ifTrue: [^aStream nextPutAll: '\r'].
+				aStream nextPutAll: '\u'.
+				aCharacter codePoint printOn: aStream paddedWith: $0 to: 4 base: 16]
+			ifFalse: [
+				$" = aCharacter ifTrue: [^aStream nextPutAll: '\"'].
+				$\ = aCharacter ifTrue: [^aStream nextPutAll: '\\'].
+				$/ = aCharacter ifTrue: [^aStream nextPutAll: '\/'].
+				aStream nextPut: aCharacter]
 	]
 
-	Json class >> readFrom: aStream [
-	^self new readFrom: aStream
-	]
+	initializeStream: anObject [
+		<category: 'initialising'>
 
-	Json class >> render: anObject [
-	| s |
-	s := WriteStream on: String new.
-	anObject jsonWriteOn: s.
-	^s contents
-	]
-
-	consume: aString returning: anObject [
-	<category: 'private'>
-	aString do:
-		[:c |
-		stream next == c
-			ifFalse: [JsonSyntaxError signal: 'Expected ''' , aString , '''']].
-	^anObject
-	]
-
-	interpretStringEscape [
-	<category: 'private'>
-	| c |
-	c := stream next.
-	c == $b ifTrue: [^Character backspace asString].
-	c == $n ifTrue: [^Character lf asString].
-	c == $f ifTrue: [^Character newPage asString].
-	c == $r ifTrue: [^Character cr asString].
-	c == $t ifTrue: [^Character tab asString].
-	c == $u ifTrue: [^self unescapeUnicode asUnicodeString asString].
-	^c asUnicodeString asString
-	]
-
-	readArray [
-	<category: 'private'>
-	| a |
-	a := OrderedCollection new.
-	self skipWhitespace.
-	(stream peekFor: $]) ifTrue: [^#()].
-
-	[a add: self readAny.
-	self skipWhitespace.
-	(stream peekFor: $]) ifTrue: [^a asArray].
-	(stream peekFor: $,) ifFalse: [JsonSyntaxError signal: 'Missing comma']]
-		repeat
-	]
-
-	readDictionary [
-	<category: 'private'>
-	| m k v needComma |
-	m := Dictionary new.
-	needComma := false.
-
-	[self skipWhitespace.
-	(stream peekFor: $}) ifTrue: [^m].
-	needComma
-		ifTrue:
-		[(stream peekFor: $,) ifFalse: [JsonSyntaxError signal: 'Missing comma'].
-		self skipWhitespace]
-		ifFalse: [needComma := true].
-	"k := self readAny."
-	(stream peekFor: $")
-		ifFalse: [JsonSyntaxError signal: 'Key in dictionary must be string'].
-	k := self readString.
-	self skipWhitespace.
-	(stream peekFor: $:) ifFalse: [JsonSyntaxError signal: 'Missing colon'].
-	v := self readAny.
-	m at: k put: v]
-		repeat
-	]
-
-	readNumber [
-	<category: 'private'>
-	| acc c |
-	acc := WriteStream on: ''.
-
-	[c := stream peek.
-	(c isNil not and: [Json numbersMayContain: c])
-		ifFalse:
-		[[^acc contents asNumber] on: Error
-			do: [JsonSyntaxError signal: 'Invalid number']].
-	acc nextPut: c.
-	stream next]
-		repeat
-	]
-
-	readString [
-	<category: 'private'>
-	| s c |
-	s := WriteStream on: ''.
-
-	[c := stream next.
-	c == $\
-		ifTrue: [s nextPutAll: self interpretStringEscape]
-		ifFalse:
-		[c == $" ifTrue: [^s contents].
-		s nextPut: c]]
-		repeat
-	]
-
-	skipComment [
-	<category: 'private'>
-	stream peek == $/
-		ifTrue:
-		[stream next.
-		stream peek == $/
-			ifTrue: [self skipToEndOfLine]
-			ifFalse:
-			[stream peek == $*
-				ifTrue:
-				[stream next.
-				self skipCommentBody]
-				ifFalse: [JsonSyntaxError signal: 'Invalid comment syntax']]]
-	]
-
-	skipCommentBody [
-	<category: 'private'>
-
-	[[stream next == $*] whileFalse.
-	stream peek == $/] whileFalse.
-	stream next.	"skip that last slash"
-	self skipWhitespace
-	]
-
-	skipToEndOfLine [
-	<category: 'private'>
-	| cr lf |
-	cr := Character cr.
-	lf := Character lf.
-
-	[| c |
-	(c := stream peek) == cr or: [c == lf]] whileFalse: [stream next].
-	self skipWhitespace
-	]
-
-	skipWhitespace [
-	<category: 'private'>
-	[stream peek isSeparator] whileTrue: [stream next].
-	self skipComment
-	]
-
-	unescapeUnicode [
-	<category: 'private'>
-	| string |
-	string := (String
-			with: stream next
-			with: stream next
-			with: stream next
-			with: stream next) asUppercase.
-	^Character codePoint: (Integer readFrom: string readStream radix: 16)
+		stream := anObject.
 	]
 
 	stream [
-	"Answer the value of stream"
+		<category: 'accessing'>
 
-	<category: 'accessing'>
-	^stream
+		^stream
 	]
 
-	stream: anObject [
-	"Set the value of stream"
+	next [
+		<category: 'parsing'>
 
-	<category: 'accessing'>
-	stream := anObject.
-	(stream respondsTo: #reset) ifTrue: [stream reset]
+		| char |
+
+		self nextSeparator.
+		char := stream peek.
+
+		char = $" ifTrue: [^self nextString].
+		char = ${ ifTrue: [^self nextDictionary].
+		char = $[ ifTrue: [^self nextArray].
+		char = $t ifTrue: [self nextExpect: 'true'. ^true].
+		char = $f ifTrue: [self nextExpect: 'false'. ^false].
+		char = $n ifTrue: [self nextExpect: 'null'. ^nil].
+		(char = $- or: [char notNil and: [char isDigit]]) ifTrue: [^self nextNumber].
+
+		self errorExpected: 'string, object, array, true, false, null or digit' was: char.
 	]
 
-	readAny [
-	"This is the main entry point for the JSON parser. See also readFrom: on the class side."
+	nextString [
+		<category: 'private'>
 
-	<category: 'parsing'>
-	| c |
-	self skipWhitespace.
-	c := stream peek asLowercase.
-	c == ${
-		ifTrue:
-		[stream next.
-		^self readDictionary].
-	c == $[
-		ifTrue:
-		[stream next.
-		^self readArray].
-	c == $"
-		ifTrue:
-		[stream next.
-		^self readString].
-	c == $t ifTrue: [^self consume: 'true' returning: true].
-	c == $f ifTrue: [^self consume: 'false' returning: false].
-	c == $n ifTrue: [^self consume: 'null' returning: nil].
+		| writeStream char |
 
-	(Json numbersMayContain: c) ifTrue: [^self readNumber].
-	JsonSyntaxError signal: 'Unknown Json input'
+		writeStream := WriteStream on: ''.
+		(stream peekFor: $") ifFalse: [self errorExpected: 'string' was: stream peek].
+
+		[(char := stream next) isNil or: [char = $"]] whileFalse: [
+			char = $\
+				ifTrue: [writeStream nextPutAll: self nextEscapedCharacter]
+				ifFalse: [writeStream nextPut: char]
+		].
+
+		char ifNil: [self errorExpected: 'character' was: nil].
+		^writeStream contents
 	]
 
-	readFrom: aStream [
-	<category: 'parsing'>
-	self stream: aStream.
-	^self readAny
+	nextEscapedCharacter [
+		<category: 'private'>
+
+		| char |
+
+		char := stream next.
+		char == $" ifTrue: [^'"'].
+		char == $\ ifTrue: [^'\'].
+		char == $/ ifTrue: [^'/'].
+		char == $b ifTrue: [^Character backspace asString].
+		char == $n ifTrue: [^Character lf asString].
+		char == $f ifTrue: [^Character newPage asString].
+		char == $r ifTrue: [^Character cr asString].
+		char == $t ifTrue: [^Character tab asString].
+		char == $u ifTrue: [^self nextUnicodeEscapedCharacter asString].
+	]
+
+	nextUnicodeEscapedCharacter [
+		<category: 'private'>
+
+		^Character codePoint: (Integer readFrom: (stream next: 4) readStream radix: 16)
+	]
+
+	nextSeparator [
+		<category: 'private'>
+
+		| char |
+
+		[(char := stream peek) notNil and: [char isSeparator]]
+			whileTrue: [stream next].
+	]
+
+	nextDictionary [
+		<category: 'private'>
+
+		| result expectComma key |
+
+		result := Dictionary new.
+		expectComma := false.
+		stream next.
+
+		[
+			self nextSeparator.
+			stream peek = $}.
+		] whileFalse: [
+			expectComma ifTrue: [self nextComma; nextSeparator].
+			expectComma := true.
+
+			key := self nextString.
+			self nextSeparator; nextExpect: ':'; nextSeparator.
+			result at: key put: self next.
+		].
+
+		stream next.
+		^result
+	]
+
+	nextArray [
+		<category: 'private'>
+
+		| result expectComma |
+
+		result := OrderedCollection new.
+		expectComma := false.
+		stream next.
+
+		[
+			self nextSeparator.
+			stream peek = $].
+		] whileFalse: [
+			expectComma ifTrue: [self nextComma; nextSeparator].
+			expectComma := true.
+
+			result add: self next.
+		].
+
+		stream next.
+		^result asArray
+	]
+
+	nextComma [
+		(stream peekFor: $,) ifFalse: [
+			self errorExpected: ',' was: stream peek].
+	]
+
+	nextExpect: aString [
+		<category: 'private'>
+
+		| unexpected |
+
+		(unexpected := stream nextAvailable: aString size) = aString ifFalse: [
+			self errorExpected: aString was: (unexpected isEmpty ifTrue: [] ifFalse: [unexpected])].
+	]
+
+	nextNumber [
+		<category: 'private'>
+
+		| sign number |
+
+		sign := (stream peekFor: $-) ifTrue: [-1] ifFalse: [1].
+
+		(stream peekFor: $0)
+			ifTrue: [number := 0]
+			ifFalse: [number := self nextInteger].
+
+		(stream peekFor: $.) ifTrue: [number := number + self nextFloat].
+
+		number := number * sign.
+
+		((stream peekFor: $e) or: [stream peekFor: $E]) ifTrue: [
+			sign := (stream peekFor: $-) ifTrue: [-1] ifFalse: [1].
+			number := number * (10 raisedTo: self nextInteger * sign)].
+
+		^number
+	]
+
+	nextInteger [
+		| char number |
+
+		number := 0.
+
+		[(char := stream peek) notNil and: [char isDigit]] whileTrue: [
+			number := number * 10 + stream next digitValue].
+
+		number = 0 ifTrue: [self errorExpected: 'digit' was: stream peek].
+		^number
+	]
+
+	nextFloat [
+		| char number i |
+
+		number := 0.
+		i := 1.
+
+		[(char := stream peek) notNil and: [char isDigit]] whileTrue: [
+			i := i * 10.
+			number := stream next digitValue / i + number].
+
+		i = 1 ifTrue: [self errorExpected: 'digit' was: stream peek].
+		^number asFloat
+	]
+
+	errorExpected: aString was: currrentString [
+		JsonSyntaxError signal:
+			'Expected %1 but %2 found' % {aString. currrentString ifNil: ['end of input']}
 	]
 ]
-
-
-
-Eval [
-	Json initialize
-]
-
