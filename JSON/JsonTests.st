@@ -90,17 +90,17 @@ TestCase subclass: JsonTests [
     ]
 
     testDictionary [
-	self json: '{}' equals: JsonObject new.
+	self json: '{}' equals: Dictionary new.
 	self json: '{"a": "a"}'
-	    equals: ((JsonObject new)
+	    equals: ((Dictionary new)
 		    at: 'a' put: 'a';
 		    yourself).
 	self json: '{"a": [[]]}'
-	    equals: ((JsonObject new)
+	    equals: ((Dictionary new)
 		    at: 'a' put: #(#());
 		    yourself).
 	self json: '{"a":"b", "b":"a"}'
-	    equals: ((JsonObject new)
+	    equals: ((Dictionary new)
 		    add: 'a' -> 'b';
 		    add: 'b' -> 'a';
 		    yourself)

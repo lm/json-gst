@@ -13,7 +13,6 @@
 <filein>Extensions/Integer.st</filein>
 <filein>JSON/Json.st</filein>
 <filein>JSON/JsonDummyTestObject.st</filein>
-<filein>JSON/JsonObject.st</filein>
 <filein>JSON/JsonSyntaxError.st</filein>
 <filein>Extensions/Number.st</filein>
 <filein>Extensions/Object.st</filein>
@@ -28,7 +27,6 @@
 <file>Extensions/Integer.st</file>
 <file>JSON/Json.st</file>
 <file>JSON/JsonDummyTestObject.st</file>
-<file>JSON/JsonObject.st</file>
 <file>JSON/JsonSyntaxError.st</file>
 <file>JSON/JsonTests.st</file>
 <file>Extensions/Number.st</file>
