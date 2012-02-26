@@ -116,17 +116,17 @@ TestCase subclass: JsonTest [
 
 	testErrorMessages [
 		self
-			parseJson: '[' error: 'Expected string, object, array, true, false, null or digit but end of input found';
-			parseJson: '{' error: 'Expected string but end of input found';
-			parseJson: '{""' error: 'Expected : but end of input found';
-			parseJson: 't' error: 'Expected true but t found';
-			parseJson: 'f' error: 'Expected false but f found';
-			parseJson: 'n' error: 'Expected null but n found';
-			parseJson: '"s' error: 'Expected character but end of input found';
-			parseJson: '"', Character nl asString, '"' error: 'Expected printable character but control character found';
-			parseJson: '"\uA' error: 'Expected 4 hex digits but A found';
-			parseJson: '"\x' error: 'Expected ", \, /, b, n, f, r, t, u but x found';
-			parseJson: '0 1' error: 'Expected end of input but 1 found'.
+			parseJson: '[' error: 'Expected string, object, array, true, false, null or digit but end of input found on line 1 column 1';
+			parseJson: '{' error: 'Expected string but end of input found on line 1 column 1';
+			parseJson: '{""' error: 'Expected : but end of input found on line 1 column 3';
+			parseJson: 't' error: 'Expected true but t found on line 1 column 1';
+			parseJson: 'f' error: 'Expected false but f found on line 1 column 1';
+			parseJson: 'n' error: 'Expected null but n found on line 1 column 1';
+			parseJson: '"s' error: 'Expected character but end of input found on line 1 column 2';
+			parseJson: '"', Character nl asString, '"' error: 'Expected printable character but control character found on line 1 column 2';
+			parseJson: '"\uA' error: 'Expected 4 hex digits but A found on line 1 column 4';
+			parseJson: '"\x' error: 'Expected ", \, /, b, n, f, r, t, u but x found on line 1 column 3';
+			parseJson: '0 1' error: 'Expected end of input but 1 found on line 1 column 2'.
 	]
 
 	parseJson: aString error: aMessageString [

@@ -1,5 +1,5 @@
 Object subclass: Json [
-	| stream |
+	| stream line linePosition |
 
 	<category: 'json'>
 	<comment: 'This class reads and writes JSON format data - strings, numbers, boolean, nil, arrays and dictionaries. See http://json.org.'>
@@ -64,6 +64,8 @@ Object subclass: Json [
 		<category: 'initialising'>
 
 		stream := anObject.
+		line := 1.
+		linePosition := 0.
 	]
 
 	stream [
@@ -147,8 +149,10 @@ Object subclass: Json [
 
 		| char |
 
-		[(char := stream peek) notNil and: [char isSeparator]]
-			whileTrue: [stream next].
+		[(char := stream peek) notNil and: [char isSeparator]] whileTrue: [
+			stream next = Character nl ifTrue: [
+				line := line + 1.
+				linePosition := stream position]].
 	]
 
 	nextDictionary [
@@ -271,6 +275,10 @@ Object subclass: Json [
 		<category: 'error raising'>
 
 		JsonSyntaxError signal:
-			'Expected %1 but %2 found' % {aString. currrentString ifNil: ['end of input']}
+			'Expected %1 but %2 found on line %3 column %4' %
+				{aString.
+				currrentString ifNil: ['end of input'].
+				line.
+				stream position - linePosition}
 	]
 ]
