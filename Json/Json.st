@@ -7,6 +7,8 @@ Object subclass: Json [
 	LastEncodedCharacter := Character space.
 
 	Json class >> readFrom: aStream [
+		<category: 'parsing'>
+
 		| parser result |
 
 		parser := self new initializeStream: aStream.
@@ -19,10 +21,14 @@ Object subclass: Json [
 	]
 
 	Json class >> parse: aString [
+		<category: 'parsing'>
+
 		^self readFrom: aString readStream
 	]
 
 	Json class >> stringify: anObject [
+		<category: 'storing'>
+
 		| stream |
 
 		stream := WriteStream on: String new.
@@ -31,10 +37,14 @@ Object subclass: Json [
 	]
 
 	Json class >> mimeType [
+		<category: 'utilities'>
+
 		^'application/x-json'
 	]
 
 	Json class >> putEscapedCharacter: aCharacter on: aStream [
+		<category: 'utilities'>
+
 		(aCharacter < LastEncodedCharacter or: [aCharacter codePoint = 127])
 			ifTrue: [
 				Character backspace = aCharacter ifTrue: [^aStream nextPutAll: '\b'].
@@ -64,7 +74,7 @@ Object subclass: Json [
 	]
 
 	next [
-		<category: 'parsing'>
+		<category: 'private'>
 
 		| char |
 
@@ -181,6 +191,8 @@ Object subclass: Json [
 	]
 
 	nextComma [
+		<category: 'private'>
+
 		(stream peekFor: $,) ifFalse: [
 			self errorExpected: ',' was: stream peek].
 	]
@@ -217,6 +229,8 @@ Object subclass: Json [
 	]
 
 	nextInteger [
+		<category: 'private'>
+
 		| char number |
 
 		number := 0.
@@ -229,6 +243,8 @@ Object subclass: Json [
 	]
 
 	nextFloat [
+		<category: 'private'>
+
 		| char number i |
 
 		number := 0.
@@ -243,6 +259,8 @@ Object subclass: Json [
 	]
 
 	errorExpected: aString was: currrentString [
+		<category: 'error raising'>
+
 		JsonSyntaxError signal:
 			'Expected %1 but %2 found' % {aString. currrentString ifNil: ['end of input']}
 	]
