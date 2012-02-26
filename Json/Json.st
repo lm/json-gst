@@ -57,7 +57,6 @@ Object subclass: Json [
 			ifFalse: [
 				$" = aCharacter ifTrue: [^aStream nextPutAll: '\"'].
 				$\ = aCharacter ifTrue: [^aStream nextPutAll: '\\'].
-				$/ = aCharacter ifTrue: [^aStream nextPutAll: '\/'].
 				aStream nextPut: aCharacter]
 	]
 

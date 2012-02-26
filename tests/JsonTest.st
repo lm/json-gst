@@ -95,7 +95,7 @@ TestCase subclass: JsonTest [
 		string := ((0 to: 128) collect: [ :code | Character codePoint: code]) asUnicodeString.
 		expected := '"\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\b\t\n\u000B\f\r\u000E',
 			'\u000F\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001A\u001B',
-			'\u001C\u001D\u001E\u001F !\"#$%&''()*+,-.\/0123456789:;<=>?@ABCDEFGHIJKLMNOPQRS',
+			'\u001C\u001D\u001E\u001F !\"#$%&''()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRS',
 			'TUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u007F', (Character codePoint: 128) asString, '"'.
 
 		self stringify: string equals: expected.
