@@ -123,6 +123,9 @@ TestCase subclass: JsonTest [
 			parseJson: 'f' error: 'Expected false but f found';
 			parseJson: 'n' error: 'Expected null but n found';
 			parseJson: '"s' error: 'Expected character but end of input found';
+			parseJson: '"', Character nl asString, '"' error: 'Expected printable character but control character found';
+			parseJson: '"\uA' error: 'Expected 4 hex digits but A found';
+			parseJson: '"\x' error: 'Expected ", \, /, b, n, f, r, t, u but x found';
 			parseJson: '0 1' error: 'Expected end of input but 1 found'.
 	]
 

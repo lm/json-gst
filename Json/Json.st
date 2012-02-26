@@ -100,6 +100,9 @@ Object subclass: Json [
 		(stream peekFor: $") ifFalse: [self errorExpected: 'string' was: stream peek].
 
 		[(char := stream next) isNil or: [char = $"]] whileFalse: [
+			char < LastEncodedCharacter ifTrue: [
+				self errorExpected: 'printable character' was: 'control character'].
+
 			char = $\
 				ifTrue: [writeStream nextPutAll: self nextEscapedCharacter]
 				ifFalse: [writeStream nextPut: char]
@@ -124,12 +127,19 @@ Object subclass: Json [
 		char == $r ifTrue: [^Character cr asString].
 		char == $t ifTrue: [^Character tab asString].
 		char == $u ifTrue: [^self nextUnicodeEscapedCharacter asString].
+
+		self errorExpected: '", \, /, b, n, f, r, t, u' was: char asString.
 	]
 
 	nextUnicodeEscapedCharacter [
 		<category: 'private'>
 
-		^Character codePoint: (Integer readFrom: (stream next: 4) readStream radix: 16)
+		| codePoint |
+
+		(codePoint := stream nextAvailable: 4) size < 4 ifTrue: [
+			self errorExpected: '4 hex digits' was: codePoint].
+
+		^Character codePoint: (Integer readFrom: codePoint readStream radix: 16)
 	]
 
 	nextSeparator [
